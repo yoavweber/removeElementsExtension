@@ -4,10 +4,9 @@ chrome.runtime.onMessage.addListener(function (request) {
     hoverBox.style.position = "absolute";
     hoverBox.style.border = "solid red 1px";
     hoverBox.style.zIndex = "0";
-    alert("wi");
+    // alert("hiding elements");
 
     document.body.appendChild(hoverBox);
-    let event;
     let previousElement;
     let element;
     let elementPosition;
@@ -18,17 +17,17 @@ chrome.runtime.onMessage.addListener(function (request) {
     });
 
     chrome.storage.sync.get(url, function (items) {
-      items[url].forEach((elem) => {
-        // console.log(objectKey, "the object key");
-        // console.log(elem, "for each element");
-        const test = getElementByAttribute(elem);
-        // console.log(test, "from each");
-        if (test != undefined) {
-          console.log(test);
-          test.style.display = "none";
-        }
-      });
-      console.log(items, "getting the url stored items");
+      if (items[url] != undefined) {
+        items[url].forEach((elem) => {
+          const storedElement = getElementByAttribute(elem);
+          // make it more cleaner
+          if (storedElement != undefined) {
+            console.log(storedElement);
+            storedElement.style.display = "none";
+          }
+        });
+        console.log(items, "getting the url stored items");
+      }
     });
 
     document.addEventListener("mousemove", (e) => {
@@ -61,11 +60,6 @@ chrome.runtime.onMessage.addListener(function (request) {
     });
 
     document.addEventListener("click", (e) => {
-      // console.log(
-      //   e.target,
-      //   element,
-      //   "is it the same element that I hoverd and clicked"
-      // );
       if (element != hoverBox) {
         storeElement(element.attributes);
         element.style.display = "none";
@@ -92,61 +86,16 @@ chrome.runtime.onMessage.addListener(function (request) {
           let existingObject = {};
           if (items[url] === undefined) {
             existingObject[url] = [elementAttributes];
-            // existingObject[url] = Object.assign(elementAttributes, items[url]);
-            // console.log(existingObject[url], "before creating a list");
-            // let result = Object.keys(existingObject[url]).map(function (key) {
-            //   console.log(key, "the key of the object");
-            //   return { [key]: existingObject[url][key] };
-            // });
-            // console.log(result, "the array");
-            // existingObject[url] = result;
           } else {
-            let test = items[url].push(elementAttributes);
-            console.log(items[url], "the tested array");
+            items[url].push(elementAttributes);
             existingObject[url] = items[url];
           }
-
-          // test = [elementAttributes, ...items[url]];
-          // console.log(result, "trying to store arrays");
 
           chrome.storage.sync.set(existingObject, function () {
             console.log(existingObject, "values has been stored");
           });
         });
       }
-    }
-
-    function hideStoredElement(i) {
-      // console.log(window.location.hostname, "get url");
-      // let elm
-      console.log("is this app running?");
-      chrome.storage.sync.get(null, function (items) {
-        // chrome.storage.sync.set(
-        //   (items["20598"]["test"] = "updating it?"),
-        //   function () {
-        //     console.log("after setting the value");
-        //   }
-        // );
-        // console.log(items["20598"], "first update");
-        console.log(items, "from new local storage");
-      });
-
-      //checking if the element got updated
-      // chrome.storage.sync.set("20598", function (items) {
-      //   items["20598"]["test"] = "updating it?";
-      // });
-
-      // chrome.storage.sync.get("20598", function (items) {
-      //   console.log(items, "is it updated?");
-      // });
-
-      const storedItem = localStorage.getItem(localStorage.key(i));
-      console.log("after  getting local storage");
-      // add a shild that make sure it would hide only the dom element
-      const storedObject = JSON.parse(storedItem);
-      // make better naming
-      const elm = getElementByAttribute(storedObject);
-      return elm;
     }
 
     function getElementByAttribute(node) {
@@ -158,11 +107,10 @@ chrome.runtime.onMessage.addListener(function (request) {
             return document.getElementById(value);
 
           case "class":
-            const classElement = document.getElementsByClassName(
-              node.className
-            );
+            const classElement = document.getElementsByClassName(node.class);
+            console.log(node.class);
             if (classElement.length === 1) {
-              return element[0];
+              return classElement[0];
             }
             break;
 
@@ -182,9 +130,4 @@ chrome.runtime.onMessage.addListener(function (request) {
     });
     alert("store has been deleted");
   }
-  alert("should be the second alert");
-
-  // sendResponse(document.documentElement.innerHTML, "hi?");
-  //   const test = document.documentElement.innerHTML();
-  //   console.log(test, "is it working??");
 });
