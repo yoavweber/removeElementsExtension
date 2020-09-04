@@ -11,25 +11,25 @@ chrome.runtime.onMessage.addListener(function (request) {
     let previousElement;
     let element;
     let elementPosition;
+    let url = window.location.hostname;
 
     chrome.storage.sync.get(null, function (items) {
-      // chrome.storage.sync.set(
-      //   (items["20598"]["test"] = "updating it?"),
-      //   function () {
-      //     console.log("after setting the value");
-      //   }
-      // );
-      // console.log(items["20598"], "first update");
-      console.log(items, "from new local storage");
+      console.log(items, "get all stored items");
     });
 
-    for (var i = 0; i < localStorage.length; i++) {
-      const storedElemented = hideStoredElement(i);
-      if (storedElemented != undefined) {
-        console.log(storedElemented, "from the loop");
-        storedElemented.style.display = "none";
-      }
-    }
+    chrome.storage.sync.get(url, function (items) {
+      items[url].forEach((elem) => {
+        // console.log(objectKey, "the object key");
+        // console.log(elem, "for each element");
+        const test = getElementByAttribute(elem);
+        // console.log(test, "from each");
+        if (test != undefined) {
+          console.log(test);
+          test.style.display = "none";
+        }
+      });
+      console.log(items, "getting the url stored items");
+    });
 
     document.addEventListener("mousemove", (e) => {
       element = e.target;
@@ -61,11 +61,11 @@ chrome.runtime.onMessage.addListener(function (request) {
     });
 
     document.addEventListener("click", (e) => {
-      console.log(
-        e.target,
-        element,
-        "is it the same element that I hoverd and clicked"
-      );
+      // console.log(
+      //   e.target,
+      //   element,
+      //   "is it the same element that I hoverd and clicked"
+      // );
       if (element != hoverBox) {
         storeElement(element.attributes);
         element.style.display = "none";
@@ -84,11 +84,30 @@ chrome.runtime.onMessage.addListener(function (request) {
       let elementAttributes = {};
 
       if (Object.keys(temp).length != 0) {
-        elementAttributes[id] = temp;
-        let url = window.location.hostname;
+        elementAttributes = temp;
+
         chrome.storage.sync.get(url, function (items) {
+          console.log(items, "previose stored element");
+          console.log(elementAttributes, "the new element to be stored");
           let existingObject = {};
-          existingObject[url] = Object.assign(elementAttributes, items[url]);
+          if (items[url] === undefined) {
+            existingObject[url] = [elementAttributes];
+            // existingObject[url] = Object.assign(elementAttributes, items[url]);
+            // console.log(existingObject[url], "before creating a list");
+            // let result = Object.keys(existingObject[url]).map(function (key) {
+            //   console.log(key, "the key of the object");
+            //   return { [key]: existingObject[url][key] };
+            // });
+            // console.log(result, "the array");
+            // existingObject[url] = result;
+          } else {
+            let test = items[url].push(elementAttributes);
+            console.log(items[url], "the tested array");
+            existingObject[url] = items[url];
+          }
+
+          // test = [elementAttributes, ...items[url]];
+          // console.log(result, "trying to store arrays");
 
           chrome.storage.sync.set(existingObject, function () {
             console.log(existingObject, "values has been stored");
